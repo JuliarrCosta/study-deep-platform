@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Study Deep Platform</title>
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<main class="wrap">
+  <section class="hero">
+    <span class="eyebrow">Plataforma offline </span>
+    <h1>Study Deep Platform</h1>
+    <p class="subtitle">Ambiente unificado de estudos com trilhas interativas.</p>
+    <div class="actions">
+      <a class="btn primary" href="pages/cybersecurity.html">Começar por Cybersecurity</a>
+      <a class="btn" href="#como-usar">Como usar</a>
+      <a class="btn" href="README.md">README</a>
+    </div>
+  </section>
+
+  <section class="home-grid" aria-label="Módulos de estudo">
+    <article class="card">
+      <div class="icon">📊</div><h2>Ciência de Dados</h2>
+      <p>Inferência, testes não-paramétricos, ANOVA, regressão linear, exercícios em R e guia de decisão estatística.</p>
+      <div class="tags"><span class="tag">R</span><span class="tag">Inferência</span><span class="tag">Regressão</span></div>
+      <a class="btn open" href="pages/ciencia-de-dados.html">Abrir módulo</a>
+    </article>
+    <article class="card">
+      <div class="icon">🌐</div><h2>Sistemas Distribuídos</h2>
+      <p>Modelos, comunicação, falhas, middleware, P2P e exemplos práticos em Java para consolidar conceitos.</p>
+      <div class="tags"><span class="tag">Java</span><span class="tag">Middleware</span><span class="tag">Falhas</span></div>
+      <a class="btn open" href="pages/sistemas-distribuidos.html">Abrir módulo</a>
+    </article>
+    <article class="card">
+      <div class="icon">🛡️</div><h2>Cybersecurity</h2>
+      <p>CIA, AAA, criptografia, IDS, hardening, pentest, OT/ICS, políticas e questões progressivas.</p>
+      <div class="tags"><span class="tag">Security</span><span class="tag">Pentest</span><span class="tag">ICS</span></div>
+      <a class="btn open" href="pages/cybersecurity.html">Abrir módulo</a>
+    </article>
+  </section>
+
+  <section id="como-usar" class="section two">
+    <div class="panel"><h2>Como usar localmente</h2><p class="list">1. Baixe ou clone o repositório.<br>2. Abra <code>index.html</code> no navegador.<br>3. Entre em um módulo e estude por aulas, questões e revisão.<br>4. O progresso fica salvo no navegador via <code>localStorage</code>.</p></div>
+    <div class="panel"><h2>Como publicar no GitHub Pages</h2><p class="list">1. Crie um repositório no GitHub.<br>2. Envie todos os arquivos deste pacote.<br>3. Vá em <code>Settings → Pages</code>.<br>4. Em <code>Deploy from branch</code>, escolha <code>main</code> e pasta <code>/root</code>.<br>5. Acesse a URL gerada pelo GitHub Pages.</p></div>
+  </section>
+
+  <section class="section panel">
+    <h2>Para futuros contribuidores</h2>
+    <p class="list">Mantenha a estrutura <code>index.html</code> + <code>pages/</code>. Ao adicionar um novo módulo, crie uma nova página HTML dentro de <code>pages/</code>, use a barra superior padrão e adicione o card correspondente nesta página principal. Evite dependências externas para manter a plataforma offline e fácil de publicar.</p>
+  </section>
+  <footer>Feito para estudo, revisão e evolução colaborativa.</footer>
+</main>
+</body>
+</html>
