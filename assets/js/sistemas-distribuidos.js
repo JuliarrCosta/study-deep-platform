@@ -321,7 +321,7 @@ Sistema finalizado.</div>
     </ol>
   </div>`;
 }
-
+//Add a mind map area 
 function setupSidebar(){
   document.getElementById('sidebar').innerHTML=`
     <div class="card nav">
@@ -334,6 +334,7 @@ function setupSidebar(){
       <button id="nav-search" onclick="setView('search')">🔎 Buscar conceito</button>
       <button id="nav-practical" onclick="setView('practical')">☕ Exemplos práticos</button>
       <button id="nav-notes" onclick="setView('notes')">🗒️ Anotações</button>
+      <button id="nav-maps" onclick="setView('maps')">🕸️ Mapas mentais</button> 
     </div>
     ${filtersHTML()}
   `;
