@@ -77,9 +77,9 @@ function startHTML(){
     <p class="muted">Aparece um conceito; toca na categoria certa antes de o tempo acabar.
     Acertos seguidos aumentam o multiplicador. Tens <b>3 vidas</b>. Erro ou tempo esgotado custa uma vida.</p>
     <ul class="muted game-rules">
-      <li>⏱️ Cada conceito tem um tempo-limite (vai encurtando conforme a pontuação sobe).</li>
-      <li>🔥 Combo: pontos = 10 × multiplicador; o multiplicador cresce a cada acerto seguido.</li>
-      <li>❤️ 3 vidas. Sem vidas, fim de jogo — mas o teu recorde fica guardado.</li>
+      <li>Cada conceito tem um tempo-limite (vai encurtando conforme a pontuação sobe).</li>
+      <li>Combo: pontos = 10 × multiplicador; o multiplicador cresce a cada acerto seguido.</li>
+      <li>3 vidas. Sem vidas, fim de jogo mas o teu recorde fica guardado.</li>
     </ul>
     <div class="row">
       <button class="primary" onclick="iniciar()">▶️ Começar a jogar</button>
