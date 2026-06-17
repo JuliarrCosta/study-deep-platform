@@ -15,7 +15,19 @@ function loadProgress(){
 }
 let progress=loadProgress();
 function save(){localStorage.setItem(STORE,JSON.stringify(progress));}
-
+const MINDMAPS=[
+  {file:'1_Introducao.png', titulo:'Introdução aos Sistemas Distribuídos', emoji:'🐟', raridade:'Comum',   peso:'1,2 kg'},
+  {file:'2_Comunicacao.png', titulo:'Comunicação',                          emoji:'🐠', raridade:'Comum',   peso:'1,5 kg'},
+  {file:'3_Modelos.png',     titulo:'Modelos de Sistemas Distribuídos',     emoji:'🐡', raridade:'Raro',    peso:'2,1 kg'},
+  {file:'4_Middleware.png',  titulo:'Middleware',                           emoji:'🦈', raridade:'Lendário',peso:'4,7 kg'},
+];
+const TRALHA=[
+  {emoji:'🥾', txt:'Pescaste uma <b>bota velha</b>. Não estuda nada, mas dá para o pé esquerdo. Devolve à água!'},
+  {emoji:'🥫', txt:'Uma <b>lata enferrujada</b> com... ar lá dentro. O exame não vem aí. Tenta outra vez!'},
+  {emoji:'🧦', txt:'Uma <b>meia perdida</b>. Encontraste o par de alguém — pena que não seja matéria. Relança!'},
+  {emoji:'🦀', txt:'Um <b>caranguejo</b> furioso agarrou a isca. Anda de lado, tal como tu na véspera do teste. Atira-o de volta!'},
+];
+let pesca={iscando:false, ultimo:null};
 function weeks(){return [...new Set(DATA.questions.map(q=>q.week))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));}
 function topics(){return [...new Set(DATA.questions.map(q=>q.topic))].sort();}
 
@@ -49,6 +61,7 @@ function render(){
   if(state.view==='search') app.innerHTML=searchHTML();
   if(state.view==='notes') app.innerHTML=notesHTML();
   if(state.view==='practical') app.innerHTML=practicalHTML();
+  if(state.view==='pescaria') app.innerHTML=pescariaHTML();
 }
 function dashboardHTML(){
   const total=DATA.questions.length, done=Object.keys(progress.answered).length, wrong=progress.wrong.length;
@@ -137,8 +150,9 @@ function quizHTML(){
   const pct=Math.round((state.idx/state.quiz.length)*100);
   return `
   <div class="card">
-    <div class="row"><span class="pill">${q.week}</span><span class="pill">${q.topic}</span><span class="pill">Dificuldade ${q.difficulty}</span><span class="pill">${state.mode}</span></div>
-    <br><div class="progress"><div class="fill" style="width:${pct}%"></div></div>
+    <div class="row"><span class="pill">${q.week}</span><span class="pill">${q.topic}</span><span class="pill">Dificuldade ${q.difficulty}</span><span class="pill">${state.mode}</span>
+      <button class="ghost" style="margin-left:auto" onclick="setView('pescaria')">🎣 Pausa: pescar um mapa</button>
+    </div>    <br><div class="progress"><div class="fill" style="width:${pct}%"></div></div>
     <p class="muted">Questão ${state.idx+1} de ${state.quiz.length}</p>
     <p class="big">${q.prompt}</p>
     ${q.type==='tf'?`
@@ -192,7 +206,8 @@ function finishHTML(){
       <button class="primary" onclick="startQuiz('study')">Nova sessão</button>
       <button class="ghost" onclick="startQuiz('review')">Revisar erros (${progress.wrong.length})</button>
       <button class="warn" onclick="startQuiz('exam')">Novo modo prova</button>
-    </div>
+      <button class="ghost" onclick="setView('pescaria')">🎣 Pescar um mapa para relaxar</button>
+      </div>
   </div>`;
 }
 function statsHTML(){
@@ -321,6 +336,63 @@ Sistema finalizado.</div>
     </ol>
   </div>`;
 }
+function pescariaHTML(){
+  return `<div class="card">
+    <h2>🎣 Lago dos Mapas Mentais</h2>
+    <p class="muted">Bem-vindo ao único lago onde os peixes te ensinam Sistemas Distribuídos.
+    Lança a linha, tem paciência (como num <i>timeout</i>) e vê o que morde. Às vezes vem matéria, às vezes vem uma bota. É a vida do pescador.</p>
+    <div class="pesca-agua" id="pesca-agua">
+      <span class="pesca-boia" id="pesca-boia">🎣</span>
+    </div>
+    <div class="row">
+      <button class="primary" id="btn-pescar" onclick="lancarLinha()">🎣 Lançar a linha</button>
+      <button class="ghost" onclick="setView('quiz')">↩️ Voltar a treinar questões</button>
+    </div>
+    <div id="pesca-resultado"></div>
+    <p class="muted" style="margin-top:14px">🏆 Espécies do lago: ${MINDMAPS.map(m=>`<span class="pill">${m.emoji} ${m.titulo} · ${m.raridade}</span>`).join(' ')}</p>
+  </div>`;
+}
+
+function lancarLinha(){
+  if(pesca.iscando) return;
+  pesca.iscando=true;
+  const btn=document.getElementById('btn-pescar');
+  const boia=document.getElementById('pesca-boia');
+  const out=document.getElementById('pesca-resultado');
+  if(btn){ btn.disabled=true; btn.textContent='🌊 A isca está na água...'; }
+  if(boia) boia.classList.add('mexe');
+  out.innerHTML='';
+
+  const suspense=['🌊 A isca afunda... glub glub...','🫧 Algo cheira a isca...','🐟 Sentes um puxão...','❗ MORDEU! Recolhe a linha!'];
+  let i=0;
+  const passo=setInterval(()=>{
+    if(btn) btn.textContent=suspense[i];
+    i++;
+    if(i>=suspense.length){
+      clearInterval(passo);
+      if(boia) boia.classList.remove('mexe');
+      if(Math.random()<0.25){
+        const t=TRALHA[Math.floor(Math.random()*TRALHA.length)];
+        out.innerHTML=`<div class="note pesca-tralha"><h3>${t.emoji} Ihh...</h3><p>${t.txt}</p>
+          <button class="primary" onclick="lancarLinha()">🎣 Relançar a linha</button></div>`;
+      } else {
+        const m=MINDMAPS[Math.floor(Math.random()*MINDMAPS.length)];
+        pesca.ultimo=m;
+        out.innerHTML=`<div class="note pesca-fisgou">
+          <h3>${m.emoji} Fisgaste: ${m.titulo}!</h3>
+          <div class="row"><span class="pill">Raridade: ${m.raridade}</span><span class="pill">Peso: ${m.peso}</span></div>
+          <div class="pesca-mapa"><img src="../assets/maps/${m.file}" alt="Mapa mental: ${m.titulo}" loading="lazy"></div>
+          <div class="row">
+            <a class="btn primary" href="../assets/maps/${m.file}" target="_blank" rel="noopener">🔍 Abrir em tamanho real</a>
+            <button class="good" onclick="lancarLinha()">🎣 Pescar outro mapa</button>
+          </div>
+        </div>`;
+      }
+      if(btn){ btn.disabled=false; btn.textContent='🪱 Pôr isca nova e lançar'; }
+      pesca.iscando=false;
+    }
+  }, 600);
+}
 //Add a mind map area 
 function setupSidebar(){
   document.getElementById('sidebar').innerHTML=`
@@ -334,7 +406,7 @@ function setupSidebar(){
       <button id="nav-search" onclick="setView('search')">🔎 Buscar conceito</button>
       <button id="nav-practical" onclick="setView('practical')">☕ Exemplos práticos</button>
       <button id="nav-notes" onclick="setView('notes')">🗒️ Anotações</button>
-      <button id="nav-maps" onclick="setView('maps')">🕸️ Mapas mentais</button> 
+      <button id="nav-pescaria" onclick="setView('pescaria')">🕸️ Mapas mentais</button> 
     </div>
     ${filtersHTML()}
   `;

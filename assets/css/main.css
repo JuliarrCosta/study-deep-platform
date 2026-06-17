@@ -54,3 +54,18 @@ h1{margin:0;font-size:clamp(24px,3vw,32px);letter-spacing:-.02em}.subtitle{color
 .section{margin-top:24px}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.panel{background:rgba(16,24,39,.92);border:1px solid var(--line);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow)}.icon{font-size:34px;margin-bottom:8px}.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.tag{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:6px 9px;color:var(--muted);background:#111f35;font-size:13px}.list{line-height:1.75;color:var(--muted)}code{background:#08111f;border:1px solid var(--line);border-radius:7px;padding:2px 6px;color:#dbeafe}footer{color:var(--muted);border-top:1px solid var(--line);margin-top:36px;padding:22px 0}
 .home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:18px;align-items:stretch}.home-grid .card{margin-bottom:0}.home-grid .card p{color:var(--muted);line-height:1.6}
 @media(max-width:760px){.platform-inner{align-items:flex-start;flex-direction:column}.platform-links{width:100%}.platform-links a{flex:1;text-align:center}.two{grid-template-columns:1fr}.home-grid{grid-template-columns:1fr}}
+
+
+/* Pesca */
+.pesca-agua{position:relative;height:120px;margin:14px 0;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--line);background:linear-gradient(180deg,#0a2a3f,#06b6d4 240%);box-shadow:inset 0 -20px 40px rgba(0,0,0,.35)}
+.pesca-agua::before,.pesca-agua::after{content:"";position:absolute;left:-50%;width:200%;height:40px;border-radius:45%;background:rgba(255,255,255,.06);animation:onda 6s linear infinite}
+.pesca-agua::after{top:30px;animation-duration:9s;background:rgba(255,255,255,.04)}
+@keyframes onda{from{transform:translateX(0) translateY(0)}to{transform:translateX(25%) translateY(4px)}}
+.pesca-boia{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:34px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
+.pesca-boia.mexe{animation:fisga .5s ease-in-out infinite}
+@keyframes fisga{0%,100%{transform:translateX(-50%) translateY(0) rotate(-6deg)}50%{transform:translateX(-50%) translateY(10px) rotate(6deg)}}
+.pesca-fisgou{border-left:4px solid var(--ok)}
+.pesca-tralha{border-left:4px solid var(--warn)}
+.pesca-mapa{margin:12px 0;border:1px solid var(--line);border-radius:var(--radius-md);background:#fbfcfe;padding:8px;max-height:520px;overflow:auto}
+.pesca-mapa img{display:block;width:100%;height:auto}
+#nav-pescaria.active{background:linear-gradient(135deg,#0e7490,#0891b2)}
