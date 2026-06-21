@@ -52,3 +52,24 @@ http://localhost:8000
 - Conteúdo e lógica dos módulos: `assets/js/*.js`
 - Estrutura HTML dos módulos: `pages/*.html`
 
+
+
+## Estrutura dos jogos
+
+Os jogos ficam isolados em `games/`, cada um com HTML, CSS e JavaScript próprios:
+
+```text
+games/
+├── nimbus/
+│   ├── index.html
+│   └── assets/
+│       ├── css/style.css
+│       └── js/app.js
+└── network-ops-academy/
+    ├── index.html
+    └── assets/
+        ├── css/style.css
+        └── js/app.js
+```
+
+A página `pages/jogos.html` funciona como catálogo e aponta para cada jogo. Para adicionar um novo jogo, crie uma pasta dentro de `games/novo-jogo/` e adicione um card em `pages/jogos.html`.
