@@ -128,8 +128,6 @@
       // SRWE: Wireless (WLC) / ENSA: Automação
       wlan: cfg.wlan || null,  // for wlc devices
       auto: cfg.auto || null,  // for automation hosts
-      // ENSA: hardening / acesso administrativo
-      security: { users: [], domainName: null, rsaGenerated: false, sshVersion: null, vty: { transport: null, loginLocal: false } },
     };
     // build interfaces
     (cfg.interfaces || []).forEach((i) => {
@@ -738,7 +736,7 @@
     if (d.mode === 'pmap-c') return pmapClassModeCmd(world, d, toks, line);
     if (d.mode === 'isakmp') return isakmpModeCmd(world, d, toks, line);
     if (d.mode === 'cryptomap') return cryptoMapModeCmd(world, d, toks, line);
-    if (d.mode === 'line') return lineCmd(world, d, toks, line);
+    if (d.mode === 'line') return ok('');
 
     return err('% Unknown command');
   }
@@ -761,7 +759,6 @@
       if (sub2 === 'int' && sub3 === 'br') return ok(showIpIntBrief(d));
       if (sub2 === 'ospf' && sub3 === 'neighbor') return ok(showOspfNeighbor(d) || '');
       if (sub2 === 'protocols') return ok(showIpProtocols(d));
-      if (sub2 === 'ssh') return ok('\nSSH ' + (d.security.sshVersion ? 'Enabled - version ' + d.security.sshVersion : 'Disabled') + '\nAuthentication methods: ' + (d.security.vty.loginLocal ? 'local' : 'none') + '\nTransport: ' + (d.security.vty.transport || 'all')); 
       if (sub2 === 'nat' && sub3 === 'translations') return ok(showNatTranslations(d) || '');
       if (sub2 === 'dhcp' && sub3 === 'binding') return ok(showDhcpBinding(d) || '');
       if (sub2 === 'access-lists' || sub2 === 'access-list') return ok(showAccessLists(d) || '');
@@ -965,14 +962,12 @@
         d.mode = 'cryptomap'; d.ctx = { cryptomap: name, cmseq: seq };
         return ok('');
       }
-      if (s1 === 'key') { d.security.rsaGenerated = true; return ok(''); } // crypto key generate rsa
+      if (s1 === 'key') return ok(''); // crypto key generate rsa
       return ok('');
     }
-    if (cmd === 'username') { d.security.users.push({ name: toks[1], secret: toks.slice(2).join(' ') }); return ok(''); }
-    if (cmd === 'ip' && (toks[1] || '').toLowerCase() === 'domain-name') { d.security.domainName = toks[2]; return ok(''); }
-    if (cmd === 'ip' && (toks[1] || '').toLowerCase() === 'ssh' && (toks[2] || '').toLowerCase() === 'version') { d.security.sshVersion = toks[3]; return ok(''); }
+    if (cmd === 'username' || cmd === 'ip' && (toks[1] || '').toLowerCase() === 'domain-name') return ok('');
     if (cmd === 'banner') { d.banner = line.replace(/^banner\s+\w+\s+/, ''); return ok(''); }
-    if (cmd === 'line') { d.mode = 'line'; d.ctx = { line: toks.slice(1).join(' ') }; return ok(''); }
+    if (cmd === 'line') { d.mode = 'line'; return ok(''); }
     if (cmd === 'enable') return ok(''); // enable secret etc
     if (cmd === 'no') return ok(''); // tolerate generic "no ..."
     if (cmd === 'spanning-tree') return spanningGlobal(d, toks);
@@ -1288,16 +1283,6 @@
     if (cmd === 'match' && (toks[1] || '').toLowerCase() === 'address') { e.matchAcl = toks[2]; return ok(''); }
     if (cmd === 'exit') { d.mode = 'config'; d.ctx = {}; return ok(''); }
     return err('% Invalid input in crypto-map mode');
-  }
-
-
-  function lineCmd(world, d, toks, line) {
-    const cmd = (toks[0] || '').toLowerCase();
-    if (cmd === 'exit') { d.mode = 'config'; d.ctx = {}; return ok(''); }
-    if (cmd === 'transport' && (toks[1] || '').toLowerCase() === 'input') { d.security.vty.transport = toks.slice(2).join(' '); return ok(''); }
-    if (cmd === 'login' && (toks[1] || '').toLowerCase() === 'local') { d.security.vty.loginLocal = true; return ok(''); }
-    if (cmd === 'password' || cmd === 'exec-timeout') return ok('');
-    return ok('');
   }
 
   // ---- Wireless LAN Controller (SRWE) --------------------------------------
@@ -2953,129 +2938,6 @@
       },
     });
 
-
-    /* ================= ENSA · OSPF MULTIÁREA ================= */
-    X.push({
-      id: 'm19', code: 'NOA-210', title: 'A Área Esquecida', place: 'Filial Norte', act: 'ENSA',
-      xp: 360, badge: 'Especialista em OSPF Multiárea', difficulty: 4,
-      concepts: ['OSPF Multiárea', 'Área 0', 'Área 1', 'ABR', 'LSA', 'Sumarização'],
-      symptom: 'A nova área 1 foi criada, mas a rede 10.2.0.0/30 não aparece no OSPF. A filial não alcança a sede.',
-      briefing:
-        'A empresa cresceu e o OSPF deixou de ser apenas single-area. O router R-ABR liga a área backbone 0 à área 1. ' +
-        'Se a interface da área 1 não for anunciada no processo OSPF, os LSAs não atravessam o ABR e a topologia fica incompleta. ' +
-        'A sua missão é ativar corretamente a rede da área 1 e validar a rota.',
-      intel: [
-        'R-ABR já tem OSPF processo 10 na área 0.',
-        'A interface Gi0/1 usa 10.2.0.1/30 e deve pertencer à área 1.',
-        'Depois da correção, PC-AREA1 deve alcançar 10.0.0.10.',
-      ],
-      hints: [
-        'Use `show ip protocols` para ver quais redes estão no OSPF.',
-        'Entre em `router ospf 10` e anuncie 10.2.0.0 0.0.0.3 area 1.',
-        'Valide com `show ip route` e ping a partir do PC-AREA1.',
-      ],
-      guided: ['enable','configure terminal','router ospf 10','network 10.2.0.0 0.0.0.3 area 1','end','show ip protocols','ping 10.0.0.10'],
-      debrief:
-        'No OSPF multiárea, a área 0 é o backbone. O router que toca área 0 e outra área é um ABR. ' +
-        'Ao anunciar a rede 10.2.0.0/30 na área 1, o ABR passa a gerar/propagar LSAs corretamente e a filial volta a aprender os caminhos.',
-      world() { return { devices: [
-        { id:'R-ABR', name:'R-ABR', type:'router', ipRouting:true,
-          interfaces:[
-            { name:'g0/0', connected:true, adminUp:true, ip:'10.0.0.1', mask:'255.255.255.252', isSwitchport:false },
-            { name:'g0/1', connected:true, adminUp:true, ip:'10.2.0.1', mask:'255.255.255.252', isSwitchport:false },
-          ], ospf:{ pid:10, networks:[{net:'10.0.0.0', wild:'0.0.0.3', area:0}], passive:[], routerId:'1.1.1.1' }, meta:{ gateway:'10.0.0.2' } },
-        { id:'PC-AREA1', name:'PC-AREA1', type:'pc', ip:'10.2.0.2', mask:'255.255.255.252', gateway:'10.2.0.1' },
-        { id:'SRV-HQ', name:'SRV-HQ', type:'server', ip:'10.0.0.10', mask:'255.255.255.0' },
-      ]}; },
-      objectives: [
-        { id:'o1', text:'Inspecionar o processo OSPF atual', check:()=>true, auto:'inspect' },
-        { id:'o2', text:'Anunciar 10.2.0.0/30 na área 1', check:(w)=> (dev(w,'R-ABR').ospf.networks||[]).some(n=>n.net==='10.2.0.0' && n.wild==='0.0.0.3' && Number(n.area)===1) },
-        { id:'o3', text:'Validar ping de PC-AREA1 para 10.0.0.10', check:(w)=> w._pinged && w._pinged['PC-AREA1->10.0.0.10'] },
-      ],
-      topology:{ nodes:[{id:'SRV-HQ',label:'Sede',t:'server',x:15,y:50},{id:'R-ABR',label:'R-ABR',t:'router',x:50,y:50},{id:'PC-AREA1',label:'Área 1',t:'pc',x:85,y:50}], links:[{a:'SRV-HQ',b:'R-ABR',l:'Área 0'},{a:'R-ABR',b:'PC-AREA1',l:'Área 1 ✗',fault:true}] },
-      evaluate(w){ const r=dev(w,'R-ABR'); const ok=(r.ospf.networks||[]).some(n=>n.net==='10.2.0.0' && Number(n.area)===1); r.meta.learnedRoutes = ok ? [{kind:'O',net:'10.0.0.0',mask:'255.255.255.0',nh:'10.0.0.2',iface:'GigabitEthernet0/0',metric:20}] : []; },
-      connectivity(w,src,target){ const ok=(dev(w,'R-ABR').ospf.networks||[]).some(n=>n.net==='10.2.0.0' && Number(n.area)===1); return (src.id==='PC-AREA1' && target==='10.0.0.10' && ok) ? {ok:true,ttl:126,path:['10.2.0.1','10.0.0.10']} : {ok:false,reason:'net-unreachable'}; }
-    });
-
-    /* ================= SRWE · SLAAC / DHCPv6 ================= */
-    X.push({
-      id: 'm20', code: 'NOA-110', title: 'O Endereço Sem Servidor', place: 'Data Center', act: 'SRWE',
-      xp: 320, badge: 'Guardiã do IPv6 Dinâmico', difficulty: 3,
-      concepts: ['SLAAC', 'DHCPv6', 'Router Advertisement', 'EUI-64', 'IPv6 Default Gateway'],
-      symptom: 'Os clientes IPv6 não recebem gateway por Router Advertisement. O segmento deveria operar com SLAAC.',
-      briefing:
-        'No IPv6, o host pode formar endereço automaticamente com SLAAC a partir dos Router Advertisements. ' +
-        'Mas o router precisa ter roteamento IPv6 ativo e endereço global na interface LAN. Configure a interface com EUI-64 e habilite o roteamento IPv6.',
-      intel: ['Segmento LAN: 2001:db8:40::/64.', 'Interface LAN do R6: Gi0/0.', 'PC6 deve alcançar 2001:db8:40::100.'],
-      hints: ['Ative `ipv6 unicast-routing` no modo global.', 'Na interface Gi0/0 use `ipv6 address 2001:db8:40::1/64 eui-64`.', 'Teste com ping IPv6.'],
-      guided: ['enable','configure terminal','ipv6 unicast-routing','interface g0/0','ipv6 address 2001:db8:40::1/64 eui-64','no shutdown','end','show ipv6 interface brief','ping 2001:db8:40::100'],
-      debrief:
-        'SLAAC depende dos Router Advertisements. Em Cisco IOS, `ipv6 unicast-routing` permite ao router anunciar prefixos, e o endereço da interface define o prefixo local. DHCPv6 pode complementar DNS/outros parâmetros, mas SLAAC resolve o endereçamento básico.',
-      world(){ return { devices:[
-        { id:'R6', name:'R6', type:'router', interfaces:[{name:'g0/0',connected:true,adminUp:true,isSwitchport:false}] },
-        { id:'PC6', name:'PC6', type:'pc', ip:'2001:db8:40::10', mask:'64', gateway:'2001:db8:40::1' },
-        { id:'SRV6', name:'SRV6', type:'server', ip:'2001:db8:40::100', mask:'64' },
-      ]}; },
-      objectives:[
-        {id:'o1',text:'Ativar ipv6 unicast-routing',check:(w)=>dev(w,'R6').ipv6Routing===true},
-        {id:'o2',text:'Configurar endereço IPv6 /64 com EUI-64 na LAN',check:(w)=> (iface(w,'R6','g0/0').ipv6||[]).some(a=>a.addr==='2001:db8:40::1' && Number(a.prefix)===64 && a.eui)},
-        {id:'o3',text:'Validar ping de PC6 para 2001:db8:40::100',check:(w)=>w._pinged && w._pinged['PC6->2001:db8:40::100']},
-      ],
-      topology:{nodes:[{id:'PC6',label:'PC6',t:'pc',x:20,y:60},{id:'R6',label:'R6',t:'router',x:50,y:50},{id:'SRV6',label:'SRV6',t:'server',x:82,y:50}],links:[{a:'PC6',b:'R6',l:'RA/SLAAC ✗',fault:true},{a:'R6',b:'SRV6',l:'IPv6'}]},
-      connectivity(w,src,target){ const r=dev(w,'R6'); const ok=r.ipv6Routing && (iface(w,'R6','g0/0').ipv6||[]).length; return (src.id==='PC6' && target==='2001:db8:40::100' && ok)?{ok:true,ttl:64,path:['2001:db8:40::1',target]}:{ok:false,reason:'net-unreachable'}; }
-    });
-
-    /* ================= ENSA · SSH / HARDENING ================= */
-    X.push({
-      id: 'm21', code: 'NOA-211', title: 'Telnet Nunca Mais', place: 'SOC NetDefend', act: 'ENSA',
-      xp: 300, badge: 'Guardião do Acesso Seguro', difficulty: 3,
-      concepts: ['SSH', 'Telnet inseguro', 'RSA keys', 'login local', 'VTY', 'Hardening'],
-      symptom: 'A administração remota ainda aceita Telnet. Credenciais passam em claro pela rede.',
-      briefing:
-        'Em ambiente empresarial, Telnet deve ser eliminado. O router precisa de domínio, usuário local, chaves RSA, SSH v2 e VTY aceitando apenas SSH com login local.',
-      intel: ['Router: R-SEC.', 'Domínio: netdefend.local.', 'Usuário local: admin.', 'Transport VTY deve ser somente ssh.'],
-      hints: ['Configure `ip domain-name netdefend.local`.', 'Crie usuário local e gere chaves RSA.', 'Em `line vty 0 4`, use `login local` e `transport input ssh`.'],
-      guided: ['enable','configure terminal','ip domain-name netdefend.local','username admin secret C1sc0!','crypto key generate rsa','ip ssh version 2','line vty 0 4','login local','transport input ssh','end','show ip ssh'],
-      debrief:'O acesso administrativo seguro exige criptografia e autenticação local/centralizada. SSH v2 substitui Telnet, protegendo credenciais e sessão de gestão.',
-      world(){ return { devices:[{id:'R-SEC',name:'R-SEC',type:'router',interfaces:[{name:'g0/0',connected:true,adminUp:true,ip:'192.168.50.1',mask:'255.255.255.0',isSwitchport:false}]}]}; },
-      objectives:[
-        {id:'o1',text:'Definir domínio do equipamento',check:(w)=>dev(w,'R-SEC').security.domainName==='netdefend.local'},
-        {id:'o2',text:'Criar usuário local admin',check:(w)=>dev(w,'R-SEC').security.users.some(u=>u.name==='admin')},
-        {id:'o3',text:'Gerar chaves RSA e ativar SSH versão 2',check:(w)=>dev(w,'R-SEC').security.rsaGenerated && dev(w,'R-SEC').security.sshVersion==='2'},
-        {id:'o4',text:'Configurar VTY com login local e somente SSH',check:(w)=>dev(w,'R-SEC').security.vty.loginLocal && dev(w,'R-SEC').security.vty.transport==='ssh'},
-      ],
-      topology:{nodes:[{id:'ADMIN',label:'Admin',t:'pc',x:20,y:60},{id:'R-SEC',label:'R-SEC',t:'router',x:55,y:50},{id:'SOC',label:'SOC',t:'server',x:85,y:50}],links:[{a:'ADMIN',b:'R-SEC',l:'Telnet ✗',fault:true},{a:'R-SEC',b:'SOC',l:'Gestão'}]},
-      connectivity(){return {ok:false,reason:'timeout'};}
-    });
-
-    /* ================= ENSA · SDN / REST / JSON ================= */
-    X.push({
-      id: 'm22', code: 'NOA-212', title: 'A Controladora Muda', place: 'Centro de Automação', act: 'ENSA',
-      xp: 380, badge: 'Operadora SDN', difficulty: 4,
-      concepts: ['SDN', 'Controller-based networking', 'REST API', 'JSON', 'Intent-based networking'],
-      symptom: 'A controladora SDN recebeu uma intent errada: bloquear o tráfego do laboratório. É preciso corrigir a política via dados JSON.',
-      briefing:
-        'Em redes modernas, muitas mudanças não são feitas diretamente via CLI em cada equipamento, mas por API em uma controladora. ' +
-        'Aqui você corrige uma intent em JSON e envia novamente para a controladora simulada.',
-      intel:['Arquivo: intent.json.', 'Campo errado: policy.lab.allowed está false.', 'Deve ficar true e depois ser aplicado com curl PUT.'],
-      hints:['Use `cat intent.json`.', 'Corrija com `set policy.lab.allowed true`.', 'Aplique com `curl -X PUT /api/intent`.'],
-      guided:['cat intent.json','set policy.lab.allowed true','curl -X PUT /api/intent','# mudar para PC-LAB','ping 10.30.0.100'],
-      debrief:'SDN separa controle e encaminhamento. A controladora recebe intenções/políticas em dados estruturados, como JSON, e traduz isso em configuração nos equipamentos.',
-      world(){return {devices:[
-        {id:'CTRL',name:'sdn@controller',type:'automation',auto:{data:{policy:{lab:{allowed:false}}},files:{'intent.json':{type:'json'}},run(data,world){ if(data.policy.lab.allowed===true){return {ok:true,out:'HTTP/1.1 200 OK\n{ "intent": "accepted", "lab": "allowed" }',apply(w){w._sdnApplied=true;}}} return {ok:false,out:'HTTP/1.1 400 Bad Request\n{ "error": "lab still blocked" }'};}}},
-        {id:'PC-LAB',name:'PC-LAB',type:'pc',ip:'10.30.0.10',mask:'255.255.255.0',gateway:'10.30.0.1'},
-        {id:'APP-LAB',name:'APP-LAB',type:'server',ip:'10.30.0.100',mask:'255.255.255.0'},
-      ]};},
-      objectives:[
-        {id:'o1',text:'Ler a intent JSON atual',check:()=>true,auto:'inspect'},
-        {id:'o2',text:'Alterar policy.lab.allowed para true',check:(w)=>dev(w,'CTRL').auto.data.policy.lab.allowed===true},
-        {id:'o3',text:'Aplicar a intent na controladora',check:(w)=>w._sdnApplied===true},
-        {id:'o4',text:'Validar ping de PC-LAB para 10.30.0.100',check:(w)=>w._pinged && w._pinged['PC-LAB->10.30.0.100']},
-      ],
-      topology:{nodes:[{id:'CTRL',label:'Controller',t:'automation',x:50,y:20},{id:'PC-LAB',label:'PC-LAB',t:'pc',x:20,y:75},{id:'APP-LAB',label:'APP-LAB',t:'server',x:82,y:75}],links:[{a:'CTRL',b:'PC-LAB',l:'Intent ✗',fault:true},{a:'CTRL',b:'APP-LAB',l:'Policy'}]},
-      connectivity(w,src,target){return (src.id==='PC-LAB'&&target==='10.30.0.100'&&w._sdnApplied)?{ok:true,ttl:64,path:['10.30.0.1',target]}:{ok:false,reason:'timeout'};}
-    });
-
     return X;
   }
 
@@ -3226,14 +3088,14 @@
     { id: 'wifi', name: 'Campus Wi-Fi', sub: 'SRWE · WLAN', x: 10, y: 30, missions: ['m12'], icon: 'building' },
     { id: 'campus', name: 'Campus LAN', sub: 'SRWE · L2', x: 24, y: 24, missions: ['m1', 'm2'], icon: 'building' },
     { id: 'corp', name: 'Sede Corporativa', sub: 'Inter-VLAN · STP', x: 48, y: 28, missions: ['m3', 'm4'], icon: 'tower' },
-    { id: 'datacenter', name: 'Data Center', sub: 'EtherChannel · IPv6', x: 76, y: 22, missions: ['m5', 'm14', 'm20'], icon: 'server' },
+    { id: 'datacenter', name: 'Data Center', sub: 'EtherChannel · IPv6', x: 76, y: 22, missions: ['m5', 'm14'], icon: 'server' },
     { id: 'redundancia', name: 'Núcleo Redundante', sub: 'SRWE · HSRP', x: 34, y: 44, missions: ['m13'], icon: 'tower' },
-    { id: 'soc', name: 'SOC NetDefend', sub: 'Segurança · Gestão', x: 84, y: 44, missions: ['m6', 'm15', 'm21'], icon: 'shield' },
-    { id: 'norte', name: 'Filial Norte', sub: 'OSPF · WAN', x: 14, y: 56, missions: ['m7', 'm11', 'm19'], icon: 'branch' },
+    { id: 'soc', name: 'SOC NetDefend', sub: 'Segurança · Gestão', x: 84, y: 44, missions: ['m6', 'm15'], icon: 'shield' },
+    { id: 'norte', name: 'Filial Norte', sub: 'OSPF · WAN', x: 14, y: 56, missions: ['m7', 'm11'], icon: 'branch' },
     { id: 'isp', name: 'Borda / ISP', sub: 'NAT · ACL', x: 48, y: 58, missions: ['m8', 'm9'], icon: 'cloud' },
     { id: 'wan', name: 'WAN Corporativa', sub: 'ENSA · QoS · VPN', x: 68, y: 64, missions: ['m16', 'm17'], icon: 'cloud' },
     { id: 'sul', name: 'Filial Sul', sub: 'DHCP Relay', x: 28, y: 80, missions: ['m10'], icon: 'branch' },
-    { id: 'automacao', name: 'Centro de Automação', sub: 'ENSA · DevNet', x: 88, y: 78, missions: ['m18', 'm22'], icon: 'server' },
+    { id: 'automacao', name: 'Centro de Automação', sub: 'ENSA · DevNet', x: 88, y: 78, missions: ['m18'], icon: 'server' },
     { id: 'colapso', name: 'NetDefend HQ', sub: 'Incidente Crítico', x: 56, y: 82, missions: ['mF'], icon: 'alert', final: true },
   ];
 
@@ -3431,9 +3293,8 @@
     if (missionId === 'mF') {
       return MISSIONS.filter(function (m) { return m.id !== 'mF'; }).every(function (m) { return state.completed[m.id]; });
     }
-    var prev = null;
-    for (var pi = idx - 1; pi >= 0; pi--) { if (!MISSIONS[pi].final) { prev = MISSIONS[pi]; break; } }
-    return !prev || !!state.completed[prev.id] || !!state.completed[missionId];
+    var prev = MISSIONS[idx - 1];
+    return !!state.completed[prev.id] || !!state.completed[missionId];
   }
 
   function showAcademy() {
