@@ -54,8 +54,22 @@ http://localhost:8000
 
 
 
-## Jogos integrados
+## Estrutura dos jogos
 
-- `games/cyberops-breadcrumb-trail/` — jogo de Cybersecurity estilo CTF/SOC segmentado em HTML, CSS e JS.
+Os jogos ficam isolados em `games/`, cada um com HTML, CSS e JavaScript próprios:
 
-Para abrir localmente, use `pages/jogos.html` ou acesse diretamente `games/cyberops-breadcrumb-trail/index.html`.
+```text
+games/
+├── nimbus/
+│   ├── index.html
+│   └── assets/
+│       ├── css/style.css
+│       └── js/app.js
+└── network-ops-academy/
+    ├── index.html
+    └── assets/
+        ├── css/style.css
+        └── js/app.js
+```
+
+A página `pages/jogos.html` funciona como catálogo e aponta para cada jogo. Para adicionar um novo jogo, crie uma pasta dentro de `games/novo-jogo/` e adicione um card em `pages/jogos.html`.
