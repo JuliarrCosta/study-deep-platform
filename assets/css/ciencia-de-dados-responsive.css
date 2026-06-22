@@ -1,0 +1,11 @@
+
+/* Ajustes responsivos específicos para o módulo Ciência de Dados */
+.module-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.module-actions .btn{text-decoration:none}
+#app{min-width:0}.sidebar{max-height:calc(100svh - 112px);overflow:auto;padding-right:4px}.sidebar .nav{display:grid;gap:4px}.sidebar button{white-space:normal;line-height:1.35}
+#app .card,#app .panel{max-width:100%;overflow:hidden}.row{min-width:0}.row>*{min-width:0}pre.diagram,.code-block,.cd-console{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}table{max-width:100%;white-space:nowrap}.lesson-list{grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))}
+@media(max-width:900px){
+  main.wrap.grid{display:flex;flex-direction:column}.sidebar{position:relative;top:auto;width:100%;max-height:none;overflow:visible}.sidebar .card{margin-bottom:12px}.sidebar .nav{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}.sidebar button{height:100%;padding:10px}.module-actions .btn{flex:1;text-align:center}.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  header .wrap{padding-top:16px}.module-actions{display:grid}.module-actions .btn{width:100%}.sidebar .nav{grid-template-columns:1fr}#app .card,#app .panel{padding:14px}.big{font-size:17px}.option{padding:12px}.kpi{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}.row button,.row select,.row input{width:100%}td,th{padding:8px;font-size:13px}.pill,.tag{font-size:12px}.code-block,pre.diagram{font-size:12px;max-height:60svh}
+}
