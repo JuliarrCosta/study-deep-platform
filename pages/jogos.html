@@ -5,7 +5,52 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Jogos | Study Deep Platform</title>
 <link rel="stylesheet" href="../assets/css/main.css">
-<link rel="stylesheet" href="../assets/css/jogos.css">
+<style>
+
+.game-card{background:rgba(16,24,39,.92);border:1px solid var(--line);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--shadow);max-width:760px;margin:0 auto}
+.game-card h2{margin:10px 0 6px}
+.game-rules{line-height:1.8;margin:10px 0 16px;padding-left:18px}
+.hud{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.hud-lives{margin-left:auto;font-size:20px;letter-spacing:2px}
+.progress.timer{height:10px;margin-bottom:18px}
+.progress.timer .fill{background:linear-gradient(90deg,var(--ok),var(--warn) 70%,var(--bad));transition:width .05s linear}
+.prompt-label{margin:0 0 8px;text-transform:uppercase;letter-spacing:.08em;font-size:12px}
+.prompt{font-size:clamp(20px,3.2vw,28px);line-height:1.35;font-weight:700;background:#0c1a2e;border:1px solid var(--line);border-left:4px solid var(--accent2);border-radius:var(--radius-md);padding:18px;margin-bottom:18px}
+.opt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.opt-btn{padding:16px 14px;font-size:16px;font-weight:600;background:#17263d;border:1px solid var(--line)}
+.opt-btn:not(:disabled):hover{border-color:var(--accent2)}
+.opt-btn.ok{background:rgba(16,185,129,.22);border-color:var(--ok)}
+.opt-btn.mau{background:rgba(239,68,68,.20);border-color:var(--bad)}
+.game-feedback{min-height:28px;margin-top:14px}
+.fb{border-radius:10px;padding:12px 14px;line-height:1.5}
+.fb.ok{background:#0e241b;border-left:4px solid var(--ok)}
+.fb.mau{background:#27151a;border-left:4px solid var(--bad)}
+.game-over .big{font-size:24px;margin:8px 0 14px}
+@media(max-width:560px){.game-card{padding:16px}.opt-btn{font-size:15px}}
+/* --- Jogo Ciência de Dados (NimbusShop) --- */
+.cd-option{display:block;width:100%;text-align:left;margin:8px 0;line-height:1.4}
+.cd-option b{color:var(--muted);margin-right:6px}
+.cd-console{background:#07111f;border:1px solid var(--line);border-radius:var(--radius-sm);padding:13px 15px;margin:0 0 14px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.6;color:#dbeafe;white-space:pre-wrap;overflow-x:auto}
+.cd-console .c-key{color:var(--warn)}
+.cd-chart{background:#07111f;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px;margin:0 0 14px;display:flex;justify-content:center}
+.cd-chart svg{width:100%;max-width:360px;height:auto}
+.cd-fx{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.cd-tomato{position:absolute;top:42%;left:50%;width:92px;height:92px;margin:-46px 0 0 -46px}
+.cd-tomato.fly{animation:cd-fly .55s cubic-bezier(.25,.7,.45,1) forwards}
+@keyframes cd-fly{0%{transform:translate(58vw,-72vh) rotate(0) scale(.5);opacity:0}12%{opacity:1}100%{transform:translate(0,0) rotate(545deg) scale(1)}}
+.cd-splat{position:absolute;top:42%;left:50%;width:230px;height:230px;margin:-115px 0 0 -115px;opacity:0;transform:scale(.2)}
+.cd-splat.go{animation:cd-splat .45s ease forwards}
+@keyframes cd-splat{0%{opacity:0;transform:scale(.2)}60%{opacity:1;transform:scale(1.15)}100%{opacity:.93;transform:scale(1)}}
+.cd-confetti{position:absolute;top:-24px;width:9px;height:14px;border-radius:2px}
+.cd-confetti.go{animation:cd-fall linear forwards}
+@keyframes cd-fall{to{transform:translateY(112vh) rotate(720deg);opacity:.85}}
+.cd-promo{position:fixed;left:50%;bottom:0;transform:translate(-50%,110%);width:min(92vw,560px);z-index:61;background:linear-gradient(135deg,#15233c,#0f172a);border:1px solid var(--warn);border-bottom:0;border-radius:16px 16px 0 0;padding:22px;text-align:center;box-shadow:0 -20px 60px -20px rgba(0,0,0,.8)}
+.cd-promo.show{animation:cd-up .5s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes cd-up{to{transform:translate(-50%,0)}}
+.cd-shake{animation:cd-shake .42s}
+@keyframes cd-shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-8px,4px)}40%{transform:translate(7px,-6px)}60%{transform:translate(-6px,6px)}80%{transform:translate(6px,-3px)}}
+@media(prefers-reduced-motion:reduce){.cd-promo{transform:translate(-50%,0)}}
+</style>
 </head>
 <body>
 
@@ -30,33 +75,31 @@
 </header>
 
 <main class="wrap">
-<section class="home-grid games-intro" aria-label="Jogos disponíveis">
-  <article class="card" role="button" tabindex="0"
+<section class="home-grid" aria-label="Jogos disponíveis" style="margin-bottom:22px">
+  <article class="card" role="button" tabindex="0" style="cursor:pointer"
     onclick="mount()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();mount()}">
     <div class="icon">🌐</div><h2>Sistemas Distribuídos</h2>
-    <p>Triagem Rápida: classifica conceitos de falhas, rede, comunicação, middleware e P2P contra o relógio.</p>
+    <p>Triagem Rápida: classifica conceitos (falhas, rede, comunicação, middleware, P2P) na categoria certa contra o relógio.</p>
     <div class="tags"><span class="tag">Arcada</span><span class="tag">Conceitos</span><span class="tag">Combo</span></div>
   </article>
-
-  <a class="game-link-card" href="../games/nimbus/index.html">
-    <article class="card">
-      <div class="icon">📊</div><h2>Ciência de Dados — NimbusShop</h2>
-      <p>A Sala de Reunião: escolha testes estatísticos, interprete gráficos e leia outputs de R para subir na carreira.</p>
-      <div class="tags"><span class="tag">Estatística</span><span class="tag">R</span><span class="tag">Responsivo</span></div>
-    </article>
-  </a>
-
-  <a class="game-link-card" href="../games/network-ops-academy/index.html">
-    <article class="card">
-      <div class="icon">🖧</div><h2>Network Ops Academy</h2>
-      <p>RPG curricular de troubleshooting com terminal IOS simulado, cobrindo SRWE e ENSA: switching, routing, wireless, segurança, gestão, VPN, QoS e automação.</p>
-      <div class="tags"><span class="tag">SRWE</span><span class="tag">ENSA</span><span class="tag">CLI + DevNet</span></div>
-    </article>
-  </a>
+  <article class="card" role="button" tabindex="0" style="cursor:pointer"
+    onclick="mountCienciaDados()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();mountCienciaDados()}">
+    <div class="icon">📊</div><h2>Ciência de Dados</h2>
+    <p>NimbusShop, A Carreira do Analista: escolha o teste certo, leia o output do R e os gráficos, e suba de estagiário a chefe. Errou? Tomate e demissão.</p>
+    <div class="tags"><span class="tag">Carreira</span><span class="tag">Estatística</span><span class="tag">47 tickets</span></div>
+  </article>
+  <article class="card" role="button" tabindex="0" style="cursor:pointer"
+    onclick="location.href='../games/cyberops-breadcrumb-trail/index.html'"
+    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();location.href='../games/cyberops-breadcrumb-trail/index.html'}">
+    <div class="icon">🛡️</div><h2>CyberOps: The Breadcrumb Trail</h2>
+    <p>Jogo estilo CTF/SOC com missões de Web, OSINT, Docker, SOC, logs, PCAP, vulnerabilidades, arquitetura, fundamentos e GRC.</p>
+    <div class="tags"><span class="tag">CTF</span><span class="tag">SOC</span><span class="tag">Security+</span></div>
+  </article>
 </section>
   <section id="game" aria-live="polite"></section>
 </main>
 
 <script src="../assets/js/jogos.js" defer></script>
+<script src="../assets/js/jogo-ciencia-de-dados.js" defer></script>
 </body>
 </html>
